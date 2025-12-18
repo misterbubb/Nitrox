@@ -20,6 +20,11 @@ public class PvPAttack : Packet
     public enum AttackType : byte
     {
         KnifeHit,
-        HeatbladeHit
+        HeatbladeHit,
+        PrawnPunch,
+        PrawnDrill,
+        TorpedoExplosion,
+        GasTorpedo,
+        VehicleCollision
     }
 }

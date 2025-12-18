@@ -14,7 +14,12 @@ public class PvPAttackProcessor : AuthenticatedPacketProcessor<PvPAttack>
     private static readonly Dictionary<PvPAttack.AttackType, float> damageMultiplierByType = new()
     {
         { PvPAttack.AttackType.KnifeHit, 0.5f },
-        { PvPAttack.AttackType.HeatbladeHit, 1f }
+        { PvPAttack.AttackType.HeatbladeHit, 1f },
+        { PvPAttack.AttackType.PrawnPunch, 0.5f },
+        { PvPAttack.AttackType.PrawnDrill, 0.25f },
+        { PvPAttack.AttackType.TorpedoExplosion, 1f },
+        { PvPAttack.AttackType.GasTorpedo, 0.5f },
+        { PvPAttack.AttackType.VehicleCollision, 0.5f }
     };
 
     public PvPAttackProcessor(SubnauticaServerConfig serverConfig, PlayerManager playerManager)

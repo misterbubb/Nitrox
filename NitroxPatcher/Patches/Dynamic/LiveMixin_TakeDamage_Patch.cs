@@ -63,28 +63,67 @@ public sealed partial class LiveMixin_TakeDamage_Patch : NitroxPatch, IDynamicPa
             return false;
         }
 
-        // Dealer must be the local player, and we need to know about the item they're holding
-        if (dealer != Player.mainObject || !Inventory.main.GetHeldObject())
+        if (!dealer)
         {
             return false;
         }
-        
-        PvPAttack.AttackType attackType;
-        switch (Inventory.main.GetHeldTool())
+
+        PvPAttack.AttackType? attackType = GetAttackType(dealer);
+        if (!attackType.HasValue)
         {
-            case HeatBlade:
-                attackType = PvPAttack.AttackType.HeatbladeHit;
-                break;
-            case Knife:
-                attackType = PvPAttack.AttackType.KnifeHit;
-                break;
-            default:
-                // We don't want to send non-registered attacks
-                return false;
+            return false;
         }
 
-        Resolve<IPacketSender>().Send(new PvPAttack(remotePlayerIdentifier.RemotePlayer.PlayerId, damage, attackType));
+        Resolve<IPacketSender>().Send(new PvPAttack(remotePlayerIdentifier.RemotePlayer.PlayerId, damage, attackType.Value));
         return true;
+    }
+
+    private static PvPAttack.AttackType? GetAttackType(GameObject dealer)
+    {
+        if (dealer == Player.mainObject && Inventory.main.GetHeldObject())
+        {
+            switch (Inventory.main.GetHeldTool())
+            {
+                case HeatBlade:
+                    return PvPAttack.AttackType.HeatbladeHit;
+                case Knife:
+                    return PvPAttack.AttackType.KnifeHit;
+            }
+        }
+
+        if (dealer.GetComponent<ExosuitClawArm>() || dealer.GetComponentInParent<ExosuitClawArm>())
+        {
+            return PvPAttack.AttackType.PrawnPunch;
+        }
+
+        if (dealer.GetComponent<ExosuitDrillArm>() || dealer.GetComponentInParent<ExosuitDrillArm>())
+        {
+            return PvPAttack.AttackType.PrawnDrill;
+        }
+
+        if (dealer.TryGetComponent(out SeamothTorpedo torpedo))
+        {
+            TechType torpedoTechType = CraftData.GetTechType(torpedo.gameObject);
+            if (torpedoTechType == TechType.GasTorpedo)
+            {
+                return PvPAttack.AttackType.GasTorpedo;
+            }
+            return PvPAttack.AttackType.TorpedoExplosion;
+        }
+
+        Exosuit exosuit = dealer.GetComponent<Exosuit>();
+        if (exosuit && exosuit == Player.main.currentMountedVehicle)
+        {
+            return PvPAttack.AttackType.VehicleCollision;
+        }
+
+        SeaMoth seamoth = dealer.GetComponent<SeaMoth>();
+        if (seamoth && seamoth == Player.main.currentMountedVehicle)
+        {
+            return PvPAttack.AttackType.VehicleCollision;
+        }
+
+        return null;
     }
 
     private static void BroadcastDefaultTookDamage(LiveMixin liveMixin)
