@@ -11,11 +11,25 @@ namespace NitroxClient.GameLogic.PlayerLogic.PlayerModel.Equipment
 
         public ReinforcedSuitVisibilityHandler(GameObject playerModel)
         {
-            gloves = playerModel.transform.Find(PlayerEquipmentConstants.REINFORCED_GLOVES_GAME_OBJECT_NAME).gameObject;
-            suit = playerModel.transform.Find(PlayerEquipmentConstants.REINFORCED_SUIT_GAME_OBJECT_NAME).gameObject;
+            Transform glovesTransform = playerModel.transform.Find(PlayerEquipmentConstants.REINFORCED_GLOVES_GAME_OBJECT_NAME);
+            Transform suitTransform = playerModel.transform.Find(PlayerEquipmentConstants.REINFORCED_SUIT_GAME_OBJECT_NAME);
+
+            gloves = glovesTransform ? glovesTransform.gameObject : null;
+            suit = suitTransform ? suitTransform.gameObject : null;
+
+            if (gloves == null || suit == null)
+            {
+                Log.Error($"[ReinforcedSuitVisibilityHandler] Failed to find one or more GameObjects: gloves={gloves != null}, suit={suit != null}");
+            }
         }
+
         public void UpdateEquipmentVisibility(ReadOnlyCollection<TechType> currentEquipment)
         {
+            if (gloves == null || suit == null)
+            {
+                return;
+            }
+
             bool glovesVisible = currentEquipment.Contains(TechType.ReinforcedGloves);
             bool bodyVisible = currentEquipment.Contains(TechType.ReinforcedDiveSuit);
 

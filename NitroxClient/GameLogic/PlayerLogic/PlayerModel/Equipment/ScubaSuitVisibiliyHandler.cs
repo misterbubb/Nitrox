@@ -13,14 +13,29 @@ namespace NitroxClient.GameLogic.PlayerLogic.PlayerModel.Equipment
 
         public ScubaSuitVisibilityHandler(GameObject playerModel)
         {
-            rebreather = playerModel.transform.Find(PlayerEquipmentConstants.REBREATHER_GAME_OBJECT_NAME).gameObject;
-            scuba = playerModel.transform.Find(PlayerEquipmentConstants.SCUBA_ROOT_GAME_OBJECT_NAME).gameObject;
-            scubaTank = playerModel.transform.Find(PlayerEquipmentConstants.SCUBA_TANK_GAME_OBJECT_NAME).gameObject;
-            scubaTankTubes = playerModel.transform.Find(PlayerEquipmentConstants.SCUBA_TANK_TUBES_GAME_OBJECT_NAME).gameObject;
+            Transform rebreatherTransform = playerModel.transform.Find(PlayerEquipmentConstants.REBREATHER_GAME_OBJECT_NAME);
+            Transform scubaTransform = playerModel.transform.Find(PlayerEquipmentConstants.SCUBA_ROOT_GAME_OBJECT_NAME);
+            Transform scubaTankTransform = playerModel.transform.Find(PlayerEquipmentConstants.SCUBA_TANK_GAME_OBJECT_NAME);
+            Transform scubaTankTubesTransform = playerModel.transform.Find(PlayerEquipmentConstants.SCUBA_TANK_TUBES_GAME_OBJECT_NAME);
+
+            rebreather = rebreatherTransform ? rebreatherTransform.gameObject : null;
+            scuba = scubaTransform ? scubaTransform.gameObject : null;
+            scubaTank = scubaTankTransform ? scubaTankTransform.gameObject : null;
+            scubaTankTubes = scubaTankTubesTransform ? scubaTankTubesTransform.gameObject : null;
+
+            if (rebreather == null || scuba == null || scubaTank == null || scubaTankTubes == null)
+            {
+                Log.Error($"[ScubaSuitVisibilityHandler] Failed to find one or more GameObjects: rebreather={rebreather != null}, scuba={scuba != null}, scubaTank={scubaTank != null}, scubaTankTubes={scubaTankTubes != null}");
+            }
         }
 
         public void UpdateEquipmentVisibility(ReadOnlyCollection<TechType> currentEquipment)
         {
+            if (rebreather == null || scuba == null || scubaTank == null || scubaTankTubes == null)
+            {
+                return;
+            }
+
             bool tankEquipped = currentEquipment.Contains(TechType.Tank) ||
                                 currentEquipment.Contains(TechType.DoubleTank) ||
                                 currentEquipment.Contains(TechType.HighCapacityTank) ||
@@ -36,7 +51,6 @@ namespace NitroxClient.GameLogic.PlayerLogic.PlayerModel.Equipment
             scuba.SetActive(rootVisible);
             scubaTank.SetActive(tankVisible);
             scubaTankTubes.SetActive(tubesVisible);
-
         }
     }
 }

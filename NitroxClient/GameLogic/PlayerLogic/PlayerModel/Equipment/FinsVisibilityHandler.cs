@@ -15,16 +15,33 @@ namespace NitroxClient.GameLogic.PlayerLogic.PlayerModel.Equipment
 
         public FinsVisibilityHandler(GameObject playerModel)
         {
-            fins = playerModel.transform.Find(PlayerEquipmentConstants.FINS_GAME_OBJECT_NAME).gameObject;
-            finsRoot = playerModel.transform.Find(PlayerEquipmentConstants.FINS_ROOT_GAME_OBJECT_NAME).gameObject;
-            chargedFins = playerModel.transform.Find(PlayerEquipmentConstants.CHARGED_FINS_GAME_OBJECT_NAME).gameObject;
-            chargedFinsRoot = playerModel.transform.Find(PlayerEquipmentConstants.CHARGED_FINS_ROOT_GAME_OBJECT_NAME).gameObject;
-            glideFins = playerModel.transform.Find(PlayerEquipmentConstants.GLIDE_FINS_GAME_OBJECT_NAME).gameObject;
-            glideFinsRoot = playerModel.transform.Find(PlayerEquipmentConstants.GLIDE_FINS_ROOT_GAME_OBJECT_NAME).gameObject;
+            Transform finsTransform = playerModel.transform.Find(PlayerEquipmentConstants.FINS_GAME_OBJECT_NAME);
+            Transform finsRootTransform = playerModel.transform.Find(PlayerEquipmentConstants.FINS_ROOT_GAME_OBJECT_NAME);
+            Transform chargedFinsTransform = playerModel.transform.Find(PlayerEquipmentConstants.CHARGED_FINS_GAME_OBJECT_NAME);
+            Transform chargedFinsRootTransform = playerModel.transform.Find(PlayerEquipmentConstants.CHARGED_FINS_ROOT_GAME_OBJECT_NAME);
+            Transform glideFinsTransform = playerModel.transform.Find(PlayerEquipmentConstants.GLIDE_FINS_GAME_OBJECT_NAME);
+            Transform glideFinsRootTransform = playerModel.transform.Find(PlayerEquipmentConstants.GLIDE_FINS_ROOT_GAME_OBJECT_NAME);
+
+            fins = finsTransform ? finsTransform.gameObject : null;
+            finsRoot = finsRootTransform ? finsRootTransform.gameObject : null;
+            chargedFins = chargedFinsTransform ? chargedFinsTransform.gameObject : null;
+            chargedFinsRoot = chargedFinsRootTransform ? chargedFinsRootTransform.gameObject : null;
+            glideFins = glideFinsTransform ? glideFinsTransform.gameObject : null;
+            glideFinsRoot = glideFinsRootTransform ? glideFinsRootTransform.gameObject : null;
+
+            if (fins == null || finsRoot == null || chargedFins == null || chargedFinsRoot == null || glideFins == null || glideFinsRoot == null)
+            {
+                Log.Error($"[FinsVisibilityHandler] Failed to find one or more GameObjects");
+            }
         }
 
         public void UpdateEquipmentVisibility(ReadOnlyCollection<TechType> currentEquipment)
         {
+            if (fins == null || finsRoot == null || chargedFins == null || chargedFinsRoot == null || glideFins == null || glideFinsRoot == null)
+            {
+                return;
+            }
+
             bool basicFinsVisible = currentEquipment.Contains(TechType.Fins);
             bool chargedFinsVisible = currentEquipment.Contains(TechType.SwimChargeFins);
             bool glideFinsVisible = currentEquipment.Contains(TechType.UltraGlideFins);
