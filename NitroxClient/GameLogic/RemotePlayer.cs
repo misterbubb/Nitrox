@@ -55,6 +55,8 @@ public class RemotePlayer : INitroxPlayer
     public InfectedMixin InfectedMixin { get; private set; }
     public LiveMixin LiveMixin { get; private set; }
 
+    private float pilotingChairExitTime;
+
     public readonly Event<RemotePlayer> PlayerDeathEvent = new();
 
     public readonly Event<RemotePlayer> PlayerDisconnectEvent = new();
@@ -181,6 +183,12 @@ public class RemotePlayer : INitroxPlayer
             return;
         }
 
+        // Block movement updates briefly after exiting piloting to let the exit animation play
+        if (Time.time < pilotingChairExitTime + 1f)
+        {
+            return;
+        }
+
         SetVehicle(null);
 
         AnimationController.AimingRotation = localRotation;
@@ -235,6 +243,8 @@ public class RemotePlayer : INitroxPlayer
                 {
                     cyclopsMovementReplicator.Exit();
                 }
+
+                pilotingChairExitTime = Time.time;
             }
 
             bool isKinematic = newPilotingChair;
