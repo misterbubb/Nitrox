@@ -209,6 +209,9 @@ public class WorldPersistenceTest
             case BatteryMetadata metadata when entityAfter.Metadata is BatteryMetadata metadataAfter:
                 Assert.AreEqual(metadata.Charge, metadataAfter.Charge);
                 break;
+            case OxygenMetadata metadata when entityAfter.Metadata is OxygenMetadata metadataAfter:
+                Assert.AreEqual(metadata.OxygenAvailable, metadataAfter.OxygenAvailable);
+                break;
             case EscapePodMetadata metadata when entityAfter.Metadata is EscapePodMetadata metadataAfter:
                 Assert.AreEqual(metadata.PodRepaired, metadataAfter.PodRepaired);
                 Assert.AreEqual(metadata.RadioRepaired, metadataAfter.RadioRepaired);
