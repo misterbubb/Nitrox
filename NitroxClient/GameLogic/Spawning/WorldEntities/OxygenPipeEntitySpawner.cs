@@ -94,11 +94,14 @@ public class OxygenPipeEntitySpawner : SyncEntitySpawner<OxygenPipeEntity>
         oxygenPipe.rootPipeUID = entity.RootPipeId.ToString();
         oxygenPipe.parentPosition = entity.ParentPosition.ToUnity();
 
+        Log.Debug($"[OxygenPipeEntitySpawner] Setting up pipe {entity.Id}: parentPipeUID={oxygenPipe.parentPipeUID}, rootPipeUID={oxygenPipe.rootPipeUID}");
+
         // It can happen that the parent connection hasn't loaded yet (normal behaviour)
         if (NitroxEntity.TryGetComponentFrom(entity.ParentPipeId, out IPipeConnection parentConnection))
         {
             oxygenPipe.parentPosition = parentConnection.GetAttachPoint();
             parentConnection.AddChild(oxygenPipe);
+            Log.Debug($"[OxygenPipeEntitySpawner] Found parent connection for pipe {entity.Id}");
         }
         else
         {
@@ -108,6 +111,18 @@ public class OxygenPipeEntitySpawner : SyncEntitySpawner<OxygenPipeEntity>
                 childrenPipeEntitiesByParentId[entity.ParentPipeId] = pendingChildren = new();
             }
             pendingChildren.Add(oxygenPipe);
+            Log.Debug($"[OxygenPipeEntitySpawner] Parent not found for pipe {entity.Id}, adding to pending list");
+        }
+
+        // Check if root can be found via UniqueIdentifier
+        if (UniqueIdentifier.TryGetIdentifier(oxygenPipe.rootPipeUID, out UniqueIdentifier rootUid))
+        {
+            IPipeConnection rootConnection = rootUid.GetComponent<IPipeConnection>();
+            Log.Debug($"[OxygenPipeEntitySpawner] Root found via UniqueIdentifier: {rootUid.Id}, providesOxygen={rootConnection?.GetProvidesOxygen()}");
+        }
+        else
+        {
+            Log.Debug($"[OxygenPipeEntitySpawner] Root NOT found via UniqueIdentifier for rootPipeUID={oxygenPipe.rootPipeUID}");
         }
 
         if (childrenPipeEntitiesByParentId.TryGetValue(entity.Id, out List<OxygenPipe> children))
@@ -121,5 +136,7 @@ public class OxygenPipeEntitySpawner : SyncEntitySpawner<OxygenPipeEntity>
 
         UWE.Utils.SetIsKinematicAndUpdateInterpolation(oxygenPipe.rigidBody, true, false);
         oxygenPipe.UpdatePipe();
+        
+        Log.Debug($"[OxygenPipeEntitySpawner] Pipe {entity.Id} setup complete: GetProvidesOxygen={oxygenPipe.GetProvidesOxygen()}, GetRoot={oxygenPipe.GetRoot()}");
     }
 }
