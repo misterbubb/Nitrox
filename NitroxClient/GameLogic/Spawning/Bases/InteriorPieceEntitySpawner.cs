@@ -10,6 +10,7 @@ using Nitrox.Model.Subnautica.DataStructures;
 using Nitrox.Model.Subnautica.DataStructures.GameLogic;
 using Nitrox.Model.Subnautica.DataStructures.GameLogic.Entities;
 using Nitrox.Model.Subnautica.DataStructures.GameLogic.Entities.Bases;
+using Nitrox.Model.Subnautica.DataStructures.GameLogic.Entities.Metadata;
 using UnityEngine;
 
 namespace NitroxClient.GameLogic.Spawning.Bases;
@@ -77,9 +78,11 @@ public class InteriorPieceEntitySpawner : EntitySpawner<InteriorPieceEntity>
 
         yield return entities.SpawnBatchAsync(batch, true);
 
-        if (result.Get().Value.TryGetComponent(out PowerSource powerSource))
+        // Only set power to max if we don't have metadata that already restored the power
+        if (entity.Metadata is not BaseBioReactorMetadata &&
+            result.Get().Value.TryGetComponent(out PowerSource powerSource))
         {
-            // TODO: Have synced/restored power
+            // TODO: Have synced/restored power for other power sources
             powerSource.SetPower(powerSource.maxPower);
         }
     }
@@ -151,6 +154,7 @@ public class InteriorPieceEntitySpawner : EntitySpawner<InteriorPieceEntity>
                 interiorPiece.ChildEntities.AddRange(Items.GetEquipmentModuleEntities(baseNuclearReactor.equipment, entityId, entityMetadataManager));
                 break;
             case BaseBioReactor baseBioReactor:
+                interiorPiece.Metadata = entityMetadataManager.Extract(baseBioReactor).OrNull();
                 foreach (ItemsContainer.ItemGroup itemGroup in baseBioReactor.container._items.Values)
                 {
                     foreach (InventoryItem item in itemGroup.items)
