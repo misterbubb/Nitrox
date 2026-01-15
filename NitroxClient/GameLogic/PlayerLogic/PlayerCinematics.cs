@@ -5,6 +5,7 @@ using Nitrox.Model.DataStructures;
 using Nitrox.Model.Packets;
 using Nitrox.Model.Subnautica.DataStructures.GameLogic;
 using Nitrox.Model.Subnautica.Packets;
+using UnityEngine;
 
 namespace NitroxClient.GameLogic.PlayerLogic;
 
@@ -32,7 +33,8 @@ public class PlayerCinematics
     {
         if (!blacklistedKeys.Contains(key))
         {
-            packetSender.Send(new PlayerCinematicControllerCall(playerId, controllerID, controllerNameHash, key, true));
+            NitroxId heldItemId = GetHeldItemId();
+            packetSender.Send(new PlayerCinematicControllerCall(playerId, controllerID, controllerNameHash, key, true, heldItemId));
         }
     }
 
@@ -42,6 +44,28 @@ public class PlayerCinematics
         {
             packetSender.Send(new PlayerCinematicControllerCall(playerId, controllerID, controllerNameHash, key, false));
         }
+    }
+
+    /// <summary>
+    /// Gets the NitroxId of an item currently held in the player's tool socket (used during cinematics like tablet insertion).
+    /// </summary>
+    private static NitroxId GetHeldItemId()
+    {
+        if (!Inventory.main || !Inventory.main.toolSocket)
+        {
+            return null;
+        }
+
+        // Check if there's an item parented to the tool socket (this happens during terminal cinematics)
+        foreach (Transform child in Inventory.main.toolSocket)
+        {
+            if (child.gameObject.activeInHierarchy && child.TryGetComponent(out NitroxEntity entity))
+            {
+                return entity.Id;
+            }
+        }
+
+        return null;
     }
 
     public void SetLocalIntroCinematicMode(IntroCinematicMode introCinematicMode)

@@ -61,6 +61,11 @@ public class RemotePlayer : INitroxPlayer
 
     public CyclopsPawn Pawn { get; set; }
 
+    /// <summary>
+    /// Tracks an item being held during a cinematic (e.g., tablet insertion).
+    /// </summary>
+    private GameObject cinematicHeldItem;
+
     public RemotePlayer(PlayerContext playerContext, PlayerModelManager playerModelManager, PlayerVitalsManager playerVitalsManager, FMODWhitelist fmodWhitelist)
     {
         PlayerContext = playerContext;
@@ -551,5 +556,29 @@ public class RemotePlayer : INitroxPlayer
     public bool CanBeAttacked()
     {
         return !SubRoot && !EscapePod && PlayerContext.GameMode != NitroxGameMode.CREATIVE;
+    }
+
+    /// <summary>
+    /// Sets the item being held during a cinematic animation.
+    /// </summary>
+    public void SetCinematicHeldItem(GameObject item)
+    {
+        cinematicHeldItem = item;
+    }
+
+    /// <summary>
+    /// Gets the item currently being held during a cinematic animation.
+    /// </summary>
+    public GameObject GetCinematicHeldItem()
+    {
+        return cinematicHeldItem;
+    }
+
+    /// <summary>
+    /// Clears the reference to the cinematic held item.
+    /// </summary>
+    public void ClearCinematicHeldItem()
+    {
+        cinematicHeldItem = null;
     }
 }
