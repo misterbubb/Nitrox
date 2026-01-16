@@ -53,6 +53,12 @@ public class PDAStateData
     [DataMember(Order = 7)]
     public ThreadSafeList<NitroxTechType> ScannerComplete { get; } = [];
 
+    /// <summary>
+    /// PDA log entries that have been read (notification dismissed).
+    /// </summary>
+    [DataMember(Order = 8)]
+    public ThreadSafeSet<string> ReadPdaLogEntries { get; } = [];
+
     public void AddKnownTechType(NitroxTechType techType, List<NitroxTechType> partialTechTypesToRemove)
     {
         ScannerPartial.RemoveAll(entry => partialTechTypesToRemove.Contains(entry.TechType));
@@ -102,6 +108,11 @@ public class PDAStateData
         }
     }
 
+    public void MarkPDALogEntryRead(string key)
+    {
+        ReadPdaLogEntries.Add(key);
+    }
+
     public void AddScannerFragment(NitroxId id)
     {
         ScannerFragments.Add(id);
@@ -139,6 +150,7 @@ public class PDAStateData
                    EncyclopediaEntries.ToList(),
                    ScannerFragments.ToList(),
                    ScannerPartial.ToList(),
-                   ScannerComplete.ToList());
+                   ScannerComplete.ToList(),
+                   ReadPdaLogEntries.ToList());
     }
 }

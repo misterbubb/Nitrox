@@ -43,12 +43,23 @@ public sealed class PdaInitialSyncProcessor : InitialSyncProcessor
     private static IEnumerator RestorePDALog(InitialPlayerSync packet)
     {
         List<PDALogEntry> logEntries = packet.PDAData.PDALogEntries;
-        Log.Info($"Received initial sync packet with {logEntries.Count} pda log entries");
+        List<string> readEntries = packet.PDAData.ReadPDALogEntries ?? [];
+        Log.Info($"Received initial sync packet with {logEntries.Count} pda log entries ({readEntries.Count} already read)");
 
         using (PacketSuppressor<PDALogEntryAdd>.Suppress())
         {
             // We just need the timestamp and the key because everything else is provided by PDALog.InitDataForEntries
             PDALog.Deserialize(logEntries.ToDictionary(m => m.Key, m => new PDALog.Entry() { timestamp = m.Timestamp }));
+        }
+
+        // Remove notifications for entries that have already been read
+        // PDALog.Deserialize triggers PDALog.OnUpdate which adds notifications for entries with timestamps in the past
+        using (PacketSuppressor<PDALogEntryRead>.Suppress())
+        {
+            foreach (string key in readEntries)
+            {
+                NotificationManager.main.Remove(NotificationManager.Group.Log, key);
+            }
         }
         yield break;
     }
