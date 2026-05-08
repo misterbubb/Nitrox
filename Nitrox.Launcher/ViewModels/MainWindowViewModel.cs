@@ -41,9 +41,6 @@ internal partial class MainWindowViewModel : ViewModelBase, IRoutingScreen
     [ObservableProperty]
     public partial bool UpdateAvailableOrUnofficial { get; set; }
 
-    [ObservableProperty]
-    public partial bool HasNotifications { get; set; }
-
     public AvaloniaList<NotificationItem> Notifications { get; init; } = [];
 
     public MainWindowViewModel(
@@ -78,7 +75,6 @@ internal partial class MainWindowViewModel : ViewModelBase, IRoutingScreen
             Dispatcher.UIThread.Invoke(() =>
             {
                 vm.Notifications.Add(message.Item);
-                vm.HasNotifications = vm.Notifications.Count > 0;
             });
             await Task.Delay(7000);
             WeakReferenceMessenger.Default.Send(new NotificationCloseMessage(message.Item));
@@ -92,7 +88,6 @@ internal partial class MainWindowViewModel : ViewModelBase, IRoutingScreen
                 Dispatcher.UIThread.Invoke(() =>
                 {
                     vm.Notifications.Remove(message.Item);
-                    vm.HasNotifications = vm.Notifications.Count > 0;
                 });
             }
         });
