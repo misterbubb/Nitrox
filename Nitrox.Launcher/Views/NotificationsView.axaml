@@ -71,7 +71,7 @@
                         </Button>
                     </Grid>
                     <controls:RichTextBlock>
-                        View all launcher notifications. This is useful in case you missed a notification.
+                        View launcher notifications that you might have missed.
                     </controls:RichTextBlock>
                 </StackPanel>
 
@@ -96,12 +96,21 @@
                                         Margin="0,0,10,0"
                                         VerticalAlignment="Center"
                                         Width="25" />
-                                    <TextBlock
-                                        Grid.Column="1"
-                                        Foreground="White"
-                                        Text="{Binding Message}"
-                                        TextWrapping="Wrap"
-                                        VerticalAlignment="Center" />
+                                    <StackPanel
+                                        Orientation="Vertical"
+                                        Grid.Column="1">
+                                        <TextBlock
+                                            Foreground="White"
+                                            Text="{Binding Message}"
+                                            TextWrapping="Wrap"
+                                            VerticalAlignment="Center" />
+                                        <TextBlock
+                                            Foreground="{DynamicResource BrandSubText}"
+                                            Text="{Binding Created.LocalDateTime}"
+                                            TextWrapping="Wrap"
+                                            VerticalAlignment="Center" />
+                                    </StackPanel>
+
                                     <Button
                                         Classes="anycontent"
                                         Command="{Binding $parent[ItemsControl].((vm:NotificationsViewModel)DataContext).RemoveNotificationCommand}"
