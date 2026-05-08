@@ -75,28 +75,34 @@
                                            FontSize="{TemplateBinding FontSize}"
                                            Text="{TemplateBinding Content}" />
                             </Grid>
-                            <!-- Update Available green dot -->
-                            <Border Height="10" Width="10" CornerRadius="5" 
-                                    Background="{DynamicResource BrandOnColor}"
-                                    BorderBrush="{DynamicResource BrandPanelBackground}"
-                                    BorderThickness="2"
-                                    HorizontalAlignment="Left"
-                                    Margin="49.25,13.5,0,0"
-                                    IsVisible="False"
-                                    ToolTip.Tip="New Nitrox update available" />
-                            <!-- Notification count badge -->
-                            <Border Height="10" Width="10" CornerRadius="5" 
-                                    Background="{DynamicResource BrandOnColor}"
-                                    BorderBrush="{DynamicResource BrandPanelBackground}"
-                                    BorderThickness="2"
-                                    HorizontalAlignment="Left"
-                                    Margin="49.25,13.5,0,0"
-                                    IsVisible="False"
-                                    ToolTip.Tip="Unread notifications" />
+                            <!-- Update available green dot -->
+                            <Border
+                                Height="10"
+                                Width="10"
+                                CornerRadius="5"
+                                Background="{DynamicResource BrandOnColor}"
+                                BorderBrush="{DynamicResource BrandPanelBackground}"
+                                BorderThickness="2"
+                                HorizontalAlignment="Left"
+                                Margin="49.25,13.5,0,0"
+                                IsVisible="False"
+                                ToolTip.Tip="New Nitrox update available" />
+                            <!-- Unread notifications badge -->
+                            <Border
+                                Height="10"
+                                Width="10"
+                                CornerRadius="5"
+                                Background="{DynamicResource BrandOnColor}"
+                                BorderBrush="{DynamicResource BrandPanelBackground}"
+                                BorderThickness="2"
+                                HorizontalAlignment="Left"
+                                Margin="49.25,13.5,0,0"
+                                IsVisible="False"
+                                ToolTip.Tip="Unread notifications" />
                         </Panel>
                     </ControlTemplate>
                 </Setter>
-                
+
                 <Style Selector="^.updates Border">
                     <Setter Property="IsVisible" Value="{Binding UpdateAvailableOrUnofficial}" />
                 </Style>
@@ -347,7 +353,7 @@
                                  HorizontalAlignment="Center" VerticalAlignment="Center">
                                 <Svg.RenderTransform>
                                     <TransformGroup>
-                                        <RotateTransform/>
+                                        <RotateTransform />
                                     </TransformGroup>
                                 </Svg.RenderTransform>
                                 <Svg.Styles>
