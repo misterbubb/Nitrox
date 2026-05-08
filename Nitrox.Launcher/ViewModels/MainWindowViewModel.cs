@@ -29,6 +29,7 @@ internal partial class MainWindowViewModel : ViewModelBase, IRoutingScreen
     private readonly DialogService dialogService;
     private readonly LaunchGameViewModel launchGameViewModel;
     private readonly Func<Window> mainWindowProvider;
+    private readonly NotificationsViewModel notificationsViewModel;
     private readonly OptionsViewModel optionsViewModel;
     private readonly ServerService serverService;
     private readonly ServersViewModel serversViewModel;
@@ -40,6 +41,9 @@ internal partial class MainWindowViewModel : ViewModelBase, IRoutingScreen
     [ObservableProperty]
     public partial bool UpdateAvailableOrUnofficial { get; set; }
 
+    [ObservableProperty]
+    public partial bool HasNotifications { get; set; }
+
     public AvaloniaList<NotificationItem> Notifications { get; init; } = [];
 
     public MainWindowViewModel(
@@ -49,6 +53,7 @@ internal partial class MainWindowViewModel : ViewModelBase, IRoutingScreen
         LaunchGameViewModel launchGameViewModel,
         CommunityViewModel communityViewModel,
         BlogViewModel blogViewModel,
+        NotificationsViewModel notificationsViewModel,
         UpdatesViewModel updatesViewModel,
         OptionsViewModel optionsViewModel,
         ServerService serverService,
@@ -61,6 +66,7 @@ internal partial class MainWindowViewModel : ViewModelBase, IRoutingScreen
         this.serversViewModel = serversViewModel;
         this.communityViewModel = communityViewModel;
         this.blogViewModel = blogViewModel;
+        this.notificationsViewModel = notificationsViewModel;
         this.updatesViewModel = updatesViewModel;
         this.optionsViewModel = optionsViewModel;
         this.serverService = serverService;
@@ -69,7 +75,11 @@ internal partial class MainWindowViewModel : ViewModelBase, IRoutingScreen
         this.RegisterMessageListener<ShowPreviousViewMessage, MainWindowViewModel>(static (message, vm) => vm.BackToAsync(message.RoutableViewModelType));
         this.RegisterMessageListener<NotificationAddMessage, MainWindowViewModel>(static async (message, vm) =>
         {
-            Dispatcher.UIThread.Invoke(() => vm.Notifications.Add(message.Item));
+            Dispatcher.UIThread.Invoke(() =>
+            {
+                vm.Notifications.Add(message.Item);
+                vm.HasNotifications = vm.Notifications.Count > 0;
+            });
             await Task.Delay(7000);
             WeakReferenceMessenger.Default.Send(new NotificationCloseMessage(message.Item));
         });
@@ -79,7 +89,11 @@ internal partial class MainWindowViewModel : ViewModelBase, IRoutingScreen
             await Task.Delay(1000); // Wait for animations
             if (!IsDesignMode) // Prevent design preview crashes
             {
-                vm.Notifications.Remove(message.Item);
+                Dispatcher.UIThread.Invoke(() =>
+                {
+                    vm.Notifications.Remove(message.Item);
+                    vm.HasNotifications = vm.Notifications.Count > 0;
+                });
             }
         });
 
@@ -121,6 +135,9 @@ internal partial class MainWindowViewModel : ViewModelBase, IRoutingScreen
 
     [RelayCommand(AllowConcurrentExecutions = false)]
     public async Task OpenBlogViewAsync() => await this.ShowAsync(blogViewModel);
+
+    [RelayCommand(AllowConcurrentExecutions = false)]
+    public async Task OpenNotificationsViewAsync() => await this.ShowAsync(notificationsViewModel);
 
     [RelayCommand(AllowConcurrentExecutions = false)]
     public async Task OpenUpdatesViewAsync() => await this.ShowAsync(updatesViewModel);
