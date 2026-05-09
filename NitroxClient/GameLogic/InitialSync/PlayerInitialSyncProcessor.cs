@@ -5,8 +5,6 @@ using NitroxClient.GameLogic.InitialSync.Abstract;
 using NitroxClient.MonoBehaviours;
 using Nitrox.Model.DataStructures;
 using Nitrox.Model.DataStructures.GameLogic;
-using Nitrox.Model.Server;
-using Nitrox.Model.Subnautica.DataStructures;
 using Nitrox.Model.Subnautica.DataStructures.GameLogic;
 using UnityEngine;
 
@@ -39,7 +37,7 @@ public sealed class PlayerInitialSyncProcessor : InitialSyncProcessor
         AddStep(sync => SetPlayerStats(sync.PlayerStatsData));
         AddStep(sync => SetUsedItems(sync.UsedItems));
         AddStep(sync => SetPlayerGameMode(sync.GameMode));
-        AddStep(sync => ApplySettings(sync.KeepInventoryOnDeath, sync.SessionSettings.FastHatch, sync.SessionSettings.FastGrow));
+        AddStep(sync => ApplySettings(sync.KeepInventoryOnDeath, sync.SessionSettings.FastHatch, sync.SessionSettings.FastGrow, sync.MarkDeathPointsWithBeacon));
     }
 
     private void SetPlayerPermissions(Perms permissions)
@@ -138,11 +136,6 @@ public sealed class PlayerInitialSyncProcessor : InitialSyncProcessor
 
     private static void SetUsedItems(List<NitroxTechType> usedItems)
     {
-        if (usedItems == null)
-        {
-            return;
-        }
-
         foreach (NitroxTechType usedItem in usedItems)
         {
             Player.main.usedTools.Add(usedItem.ToUnity());
@@ -150,15 +143,16 @@ public sealed class PlayerInitialSyncProcessor : InitialSyncProcessor
         Log.Info($"Received initial sync packet with {usedItems.Count} used items");
     }
 
-    private static void SetPlayerGameMode(NitroxGameMode gameMode)
+    private static void SetPlayerGameMode(SubnauticaGameMode gameMode)
     {
         Log.Info($"Received initial sync packet with gamemode {gameMode}");
         GameModeUtils.SetGameMode((GameModeOption)(int)gameMode, GameModeOption.None);
     }
 
-    private void ApplySettings(bool keepInventoryOnDeath, bool fastHatch, bool fastGrow)
+    private void ApplySettings(bool keepInventoryOnDeath, bool fastHatch, bool fastGrow, bool markDeathPointsWithBeacon)
     {
         localPlayer.KeepInventoryOnDeath = keepInventoryOnDeath;
+        localPlayer.MarkDeathPointsWithBeacon = markDeathPointsWithBeacon;
         NoCostConsoleCommand.main.fastHatchCheat = fastHatch;
         NoCostConsoleCommand.main.fastGrowCheat = fastGrow;
         if (!fastHatch && !fastGrow)
@@ -176,5 +170,10 @@ public sealed class PlayerInitialSyncProcessor : InitialSyncProcessor
             cheatsEnabled.Append(" fastGrow");
         }
         Log.InGame(cheatsEnabled.ToString());
+    }
+
+    private void SetPlayerMarkDeathPointsWithBeacon(bool markDeathPointsWithBeacon)
+    {
+        localPlayer.MarkDeathPointsWithBeacon = markDeathPointsWithBeacon;
     }
 }

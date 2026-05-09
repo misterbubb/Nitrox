@@ -29,16 +29,17 @@ internal partial class MainWindowViewModel : ViewModelBase, IRoutingScreen
     private readonly DialogService dialogService;
     private readonly LaunchGameViewModel launchGameViewModel;
     private readonly Func<Window> mainWindowProvider;
+    private readonly NotificationsViewModel notificationsViewModel;
     private readonly OptionsViewModel optionsViewModel;
     private readonly ServerService serverService;
     private readonly ServersViewModel serversViewModel;
     private readonly UpdatesViewModel updatesViewModel;
 
     [ObservableProperty]
-    private object? activeViewModel;
+    public partial object? ActiveViewModel { get; set; }
 
     [ObservableProperty]
-    private bool updateAvailableOrUnofficial;
+    public partial bool UpdateAvailableOrUnofficial { get; set; }
 
     public AvaloniaList<NotificationItem> Notifications { get; init; } = [];
 
@@ -49,6 +50,7 @@ internal partial class MainWindowViewModel : ViewModelBase, IRoutingScreen
         LaunchGameViewModel launchGameViewModel,
         CommunityViewModel communityViewModel,
         BlogViewModel blogViewModel,
+        NotificationsViewModel notificationsViewModel,
         UpdatesViewModel updatesViewModel,
         OptionsViewModel optionsViewModel,
         ServerService serverService,
@@ -61,6 +63,7 @@ internal partial class MainWindowViewModel : ViewModelBase, IRoutingScreen
         this.serversViewModel = serversViewModel;
         this.communityViewModel = communityViewModel;
         this.blogViewModel = blogViewModel;
+        this.notificationsViewModel = notificationsViewModel;
         this.updatesViewModel = updatesViewModel;
         this.optionsViewModel = optionsViewModel;
         this.serverService = serverService;
@@ -69,17 +72,23 @@ internal partial class MainWindowViewModel : ViewModelBase, IRoutingScreen
         this.RegisterMessageListener<ShowPreviousViewMessage, MainWindowViewModel>(static (message, vm) => vm.BackToAsync(message.RoutableViewModelType));
         this.RegisterMessageListener<NotificationAddMessage, MainWindowViewModel>(static async (message, vm) =>
         {
-            Dispatcher.UIThread.Invoke(() => vm.Notifications.Add(message.Item));
+            Dispatcher.UIThread.Invoke(() =>
+            {
+                vm.Notifications.Add(message.Item);
+            });
             await Task.Delay(7000);
             WeakReferenceMessenger.Default.Send(new NotificationCloseMessage(message.Item));
         });
         this.RegisterMessageListener<NotificationCloseMessage, MainWindowViewModel>(static async (message, vm) =>
         {
-            message.Item.Dismissed = true;
+            message.Item.IsDismissed = true;
             await Task.Delay(1000); // Wait for animations
             if (!IsDesignMode) // Prevent design preview crashes
             {
-                vm.Notifications.Remove(message.Item);
+                Dispatcher.UIThread.Invoke(() =>
+                {
+                    vm.Notifications.Remove(message.Item);
+                });
             }
         });
 
@@ -123,6 +132,9 @@ internal partial class MainWindowViewModel : ViewModelBase, IRoutingScreen
     public async Task OpenBlogViewAsync() => await this.ShowAsync(blogViewModel);
 
     [RelayCommand(AllowConcurrentExecutions = false)]
+    public async Task OpenNotificationsViewAsync() => await this.ShowAsync(notificationsViewModel);
+
+    [RelayCommand(AllowConcurrentExecutions = false)]
     public async Task OpenUpdatesViewAsync() => await this.ShowAsync(updatesViewModel);
 
     [RelayCommand(AllowConcurrentExecutions = false)]
@@ -145,7 +157,7 @@ internal partial class MainWindowViewModel : ViewModelBase, IRoutingScreen
         }
 
         // As closing handler isn't async, cancellation might have happened anyway. So check manually if we should close the window after all the tasks are done.
-        if (args.Cancel == false && mainWindowProvider().IsClosingByUser(args))
+        if (!args.Cancel && mainWindowProvider().IsClosingByUser(args))
         {
             mainWindowProvider().CloseByCode();
         }
