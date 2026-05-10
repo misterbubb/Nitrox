@@ -24,6 +24,6 @@ public class OxygenMetadata : EntityMetadata
 
     public override string ToString()
     {
-        return $"[OxygenMetadata OxygenAvailable: {OxygenAvailable}]";
+        return $"[{nameof(OxygenMetadata)} {nameof(OxygenAvailable)}: {OxygenAvailable}]";
     }
 }

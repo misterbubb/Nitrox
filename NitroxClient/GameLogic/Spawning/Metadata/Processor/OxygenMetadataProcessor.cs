@@ -10,13 +10,12 @@ public class OxygenMetadataProcessor : EntityMetadataProcessor<OxygenMetadata>
     {
         Oxygen oxygen = gameObject.GetComponent<Oxygen>();
 
-        if (oxygen)
+        if (!oxygen)
         {
-            oxygen.oxygenAvailable = metadata.OxygenAvailable;
+            Log.Warn($"[{nameof(OxygenMetadataProcessor)}] Could not find Oxygen component on {gameObject.name}");
+            return;
         }
-        else
-        {
-            Log.Warn($"[OxygenMetadataProcessor] Could not find Oxygen component on {gameObject.name}");
-        }
+
+        oxygen.oxygenAvailable = metadata.OxygenAvailable;
     }
 }
