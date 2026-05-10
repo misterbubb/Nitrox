@@ -126,9 +126,6 @@ internal class WorldService : IHostedService
                 if (entityRegistry.GetAllEntities().Count < 504732)
                 {
                     await worldEntityManager.LoadAllUnspawnedEntitiesAsync(cancellationToken);
-
-                    logger.ZLogInformation($"Saving newly cached entities.");
-                    await saveService.QueueActionAsync(SaveService.ServiceAction.SAVE, cancellationToken);
                 }
                 logger.ZLogInformation($"All batches have now been loaded.");
             }
