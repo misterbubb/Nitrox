@@ -1,6 +1,6 @@
 using Avalonia.Controls;
 
-namespace Nitrox.Launcher.Views.Controls;
+namespace Nitrox.Launcher.Models.Controls;
 
 public partial class ServerStatusControl : UserControl
 {

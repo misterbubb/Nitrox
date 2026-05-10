@@ -11,8 +11,7 @@
     xmlns:converters="clr-namespace:Nitrox.Launcher.Models.Converters"
     xmlns:vm="clr-namespace:Nitrox.Launcher.ViewModels"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:designer="clr-namespace:Nitrox.Launcher.ViewModels.Designer"
-    xmlns:viewControls="clr-namespace:Nitrox.Launcher.Views.Controls">
+    xmlns:designer="clr-namespace:Nitrox.Launcher.ViewModels.Designer">
     <Design.DataContext>
         <designer:DesignServersViewModel />
     </Design.DataContext>
@@ -108,7 +107,7 @@
                                                 Classes="description"
                                                 HorizontalAlignment="Left"
                                                 Orientation="Horizontal">
-                                                <viewControls:ServerStatusControl />
+                                                <controls:ServerStatusControl />
                                             </WrapPanel>
                                         </StackPanel>
                                         <StackPanel
