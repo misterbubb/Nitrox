@@ -7,8 +7,6 @@ public class OxygenMetadataExtractor : EntityMetadataExtractor<Oxygen, OxygenMet
 {
     public override OxygenMetadata Extract(Oxygen entity)
     {
-        float oxygen = entity.oxygenAvailable;
-        Log.Debug($"[OxygenMetadataExtractor] Extracting oxygen: {oxygen} from {entity.gameObject.name}");
-        return new(oxygen);
+        return new(entity.oxygenAvailable);
     }
 }
