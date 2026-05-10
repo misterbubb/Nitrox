@@ -61,7 +61,6 @@ internal sealed class ServersManagement(ServerService serverService) : Streaming
             {
                 entry.LoadingStage = stage;
                 entry.LoadingProgress = progress;
-                entry.IsLoading = progress < 1.0f;
             }
         }
         catch (Exception ex)

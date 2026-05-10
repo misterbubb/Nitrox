@@ -71,8 +71,7 @@ internal sealed partial class ServerEntry : ObservableObject
     [ObservableProperty]
     public partial bool IsOnline { get; set; }
 
-    [ObservableProperty]
-    public partial bool IsLoading { get; set; }
+    public bool IsLoading => LoadingStage != null && LoadingProgress < 1.0f;
 
     [ObservableProperty]
     public partial string? LoadingStage { get; set; }
@@ -315,7 +314,6 @@ internal sealed partial class ServerEntry : ObservableObject
 
         Output.Clear();
         IsNewServer = false;
-        IsLoading = true;
         LoadingStage = "Starting...";
         IsOnline = true;
     }
@@ -394,7 +392,6 @@ internal sealed partial class ServerEntry : ObservableObject
                     PlayerCount = 0;
                     PlayerNames = [];
                     IsOnline = false;
-                    IsLoading = false;
                     LoadingStage = null;
                     Output.Clear();
                 });
