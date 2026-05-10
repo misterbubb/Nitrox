@@ -15,7 +15,7 @@ public class BulkheadDoorMetadataProcessor : EntityMetadataProcessor<BulkheadDoo
 
         if (!bulkheadDoor)
         {
-            Log.Warn($"[BulkheadDoorMetadataProcessor] No BulkheadDoor component found on {gameObject.name} or its children");
+            Log.Warn($"[{nameof(BulkheadDoorMetadataProcessor)}] No BulkheadDoor component found on {gameObject.name} or its children");
             return;
         }
 
