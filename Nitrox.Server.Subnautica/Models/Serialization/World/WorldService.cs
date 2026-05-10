@@ -13,9 +13,9 @@ using Nitrox.Server.Subnautica.Models.GameLogic.Entities;
 using Nitrox.Server.Subnautica.Models.GameLogic.Entities.Spawning;
 using Nitrox.Server.Subnautica.Models.GameLogic.Players;
 using Nitrox.Server.Subnautica.Models.GameLogic.Unlockables;
-using Nitrox.Server.Subnautica.Models.Helper;
 using Nitrox.Server.Subnautica.Models.Serialization.SaveDataUpgrades;
 using Nitrox.Server.Subnautica.Services;
+using Nitrox.Server.Subnautica.Services.Core;
 
 namespace Nitrox.Server.Subnautica.Models.Serialization.World;
 
@@ -32,6 +32,7 @@ internal class WorldService : IHostedService
 
     private readonly SubnauticaServerProtoBufSerializer protoBufSerializer;
     private readonly SaveService saveService;
+    private readonly IProgressReporter progressReporter;
     private readonly IOptions<ServerStartOptions> startOptions;
     private readonly StoryManager storyManager;
     private readonly StoryScheduler storyScheduler;
@@ -56,6 +57,7 @@ internal class WorldService : IHostedService
         PdaManager pdaManager,
         EscapePodManager escapePodManager,
         SaveService saveService,
+        IProgressReporter progressReporter,
         IOptions<ServerStartOptions> startOptions,
         ILogger<WorldService> logger)
     {
@@ -73,6 +75,7 @@ internal class WorldService : IHostedService
         this.pdaManager = pdaManager;
         this.escapePodManager = escapePodManager;
         this.saveService = saveService;
+        this.progressReporter = progressReporter;
         this.startOptions = startOptions;
         this.logger = logger;
 
@@ -97,7 +100,7 @@ internal class WorldService : IHostedService
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        ServerLoadingProgressService.ReportProgress("Loading world data", 0.1f);
+        await progressReporter.ReportProgressAsync("Loading world data", 0.1f);
         
         if (!await LoadWorldFromSavePathAsync(startOptions.Value.GetServerSavePath()))
         {

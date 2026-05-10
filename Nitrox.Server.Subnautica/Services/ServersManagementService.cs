@@ -12,19 +12,21 @@ using Nitrox.Server.Subnautica.Models.GameLogic;
 using Nitrox.Server.Subnautica.Models.Logging.Scopes;
 using Nitrox.Server.Subnautica.Models.Logging.ZLogger;
 using Nitrox.Server.Subnautica.Models.Packets.Core;
+using Nitrox.Server.Subnautica.Services.Core;
 
 namespace Nitrox.Server.Subnautica.Services;
 
 /// <summary>
 ///     Connects to a locally running app that might want to track this server. Nitrox.Launcher is expected.
 /// </summary>
-internal sealed class ServersManagementService(PlayerManager playerManager, IPacketSender packetSender, CommandService commandProcessor, IOptions<ServerStartOptions> options, ILogger<ServersManagementService> logger) : BackgroundService
+internal sealed class ServersManagementService(PlayerManager playerManager, IPacketSender packetSender, CommandService commandProcessor, IProgressReporter progressReporter, IOptions<ServerStartOptions> options, ILogger<ServersManagementService> logger) : BackgroundService
 {
     public static readonly Channel<LogEntry> LogQueue = Channel.CreateBounded<LogEntry>(new BoundedChannelOptions(1000) { FullMode = BoundedChannelFullMode.DropOldest });
     private readonly CommandService commandProcessor = commandProcessor;
     private readonly ILogger<ServersManagementService> logger = logger;
     private readonly IOptions<ServerStartOptions> options = options;
     private readonly PlayerManager playerManager = playerManager;
+    private readonly IProgressReporter progressReporter = progressReporter;
     private GrpcChannel? channel;
     private Task? pushLogsTask;
     private Task? pushProgressTask;
@@ -155,7 +157,7 @@ internal sealed class ServersManagementService(PlayerManager playerManager, IPac
 
     private async Task PushProgressAsync(IServersManagement api, CancellationToken cancellationToken)
     {
-        await foreach (ServerLoadingProgressService.LoadingProgressUpdate progress in ServerLoadingProgressService.ProgressQueue.Reader.ReadAllAsync(cancellationToken))
+        await foreach (IProgressReporter.ProgressUpdate progress in progressReporter.ReadAllAsync(cancellationToken))
         {
             await api.SetLoadingProgress(progress.Stage, progress.Progress);
         }

@@ -10,7 +10,7 @@ using Nitrox.Model.Subnautica.DataStructures.GameLogic.Entities.Metadata;
 using Nitrox.Model.Subnautica.Helper;
 using Nitrox.Server.Subnautica.Models.GameLogic.Entities.Spawning;
 using Nitrox.Server.Subnautica.Models.Packets.Core;
-using Nitrox.Server.Subnautica.Services;
+using Nitrox.Server.Subnautica.Services.Core;
 
 namespace Nitrox.Server.Subnautica.Models.GameLogic.Entities;
 
@@ -26,6 +26,7 @@ internal sealed class WorldEntityManager
     private readonly BatchEntitySpawner batchEntitySpawner;
     private readonly IPacketSender packetSender;
     private readonly EntityRegistry entityRegistry;
+    private readonly IProgressReporter progressReporter;
 
     /// <summary>
     ///     Global root entities that are always visible.
@@ -44,13 +45,14 @@ internal sealed class WorldEntityManager
     /// </summary>
     internal Dictionary<AbsoluteEntityCell, Dictionary<NitroxId, WorldEntity>> worldEntitiesByCell = [];
 
-    public WorldEntityManager(IPacketSender packetSender, EntityRegistry entityRegistry, BatchEntitySpawner batchEntitySpawner, PlayerManager playerManager, ILogger<WorldEntityManager> logger)
+    public WorldEntityManager(IPacketSender packetSender, EntityRegistry entityRegistry, BatchEntitySpawner batchEntitySpawner, PlayerManager playerManager, IProgressReporter progressReporter, ILogger<WorldEntityManager> logger)
     {
         this.packetSender = packetSender;
         this.entityRegistry = entityRegistry;
         this.batchEntitySpawner = batchEntitySpawner;
         this.playerManager = playerManager;
         this.logger = logger;
+        this.progressReporter = progressReporter;
     }
 
     public List<GlobalRootEntity> GetGlobalRootEntities(bool rootOnly = false)
@@ -246,7 +248,7 @@ internal sealed class WorldEntityManager
                 float progress = (float)batchesLoaded / totalBatches;
                 int percentage = (int)(100f * progress);
                 logger.ZLogInformation($"Loading : {percentage}%");
-                ServerLoadingProgressService.ReportProgress($"Loading entities: {percentage}%", progress);
+                await progressReporter.ReportProgressAsync($"Loading entities: {percentage}%", progress);
             }
         }
     }

@@ -10,6 +10,7 @@ using Nitrox.Server.Subnautica.Models;
 using Nitrox.Server.Subnautica.Models.Factories;
 using Nitrox.Server.Subnautica.Models.Serialization;
 using Nitrox.Server.Subnautica.Services;
+using Nitrox.Server.Subnautica.Services.Core;
 
 namespace Nitrox.Server.Subnautica;
 
@@ -66,8 +67,6 @@ internal sealed class Program
 
     private static async Task StartServerAsync(string[] args)
     {
-        ServerLoadingProgressService.ReportProgress("Initializing server", 0.0f);
-        
         HostApplicationBuilder builder = Host.CreateEmptyApplicationBuilder(new HostApplicationBuilderSettings
         {
             DisableDefaults = true,
@@ -115,6 +114,7 @@ internal sealed class Program
                .AddHostedSingletonService<LanBroadcastService>()
                .AddHostedSingletonService<MemoryService>()
                .AddHostedSingletonService<RestartService>()
+               .AddHostedSingletonService<IProgressReporter, ServerLoadingProgressService>()
                .AddSingleton<RandomFactory>()
                .AddSingleton<NtpSyncer>()
                .AddSingleton<SubnauticaServerProtoBufSerializer>()
