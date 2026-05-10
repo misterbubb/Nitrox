@@ -74,9 +74,11 @@ internal sealed partial class ServerEntry : ObservableObject
     public bool IsLoading => LoadingStage != null && LoadingProgress < 1.0f;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsLoading))]
     public partial string? LoadingStage { get; set; }
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsLoading))]
     public partial float LoadingProgress { get; set; }
 
     [ObservableProperty]
@@ -314,7 +316,9 @@ internal sealed partial class ServerEntry : ObservableObject
 
         Output.Clear();
         IsNewServer = false;
+        // Set loading state BEFORE IsOnline to ensure UI shows loading first
         LoadingStage = "Starting...";
+        LoadingProgress = 0f;
         IsOnline = true;
     }
 

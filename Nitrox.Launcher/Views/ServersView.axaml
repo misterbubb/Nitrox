@@ -11,7 +11,8 @@
     xmlns:converters="clr-namespace:Nitrox.Launcher.Models.Converters"
     xmlns:vm="clr-namespace:Nitrox.Launcher.ViewModels"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:designer="clr-namespace:Nitrox.Launcher.ViewModels.Designer">
+    xmlns:designer="clr-namespace:Nitrox.Launcher.ViewModels.Designer"
+    xmlns:viewControls="clr-namespace:Nitrox.Launcher.Views.Controls">
     <Design.DataContext>
         <designer:DesignServersViewModel />
     </Design.DataContext>
@@ -107,53 +108,7 @@
                                                 Classes="description"
                                                 HorizontalAlignment="Left"
                                                 Orientation="Horizontal">
-                                                <Panel>
-                                                    <StackPanel IsVisible="{Binding IsLoading}" Orientation="Horizontal">
-                                                        <Ellipse Fill="{DynamicResource SystemAccentColor}" Margin="0,0,6,0" />
-                                                        <TextBlock Text="{Binding LoadingStage, FallbackValue='Loading...'}" />
-                                                    </StackPanel>
-                                                    <StackPanel Orientation="Horizontal">
-                                                        <StackPanel.IsVisible>
-                                                            <MultiBinding Converter="{x:Static BoolConverters.And}">
-                                                                <Binding Path="IsOnline" />
-                                                                <Binding Path="!IsLoading" />
-                                                            </MultiBinding>
-                                                        </StackPanel.IsVisible>
-                                                        <Ellipse Fill="{DynamicResource BrandOnColor}" Margin="0,0,6,0" />
-                                                        <TextBlock Text="Online" />
-                                                    </StackPanel>
-                                                    <StackPanel Orientation="Horizontal">
-                                                        <StackPanel.IsVisible>
-                                                            <MultiBinding Converter="{x:Static BoolConverters.And}">
-                                                                <Binding Path="!IsOnline" />
-                                                                <Binding Path="!IsLoading" />
-                                                            </MultiBinding>
-                                                        </StackPanel.IsVisible>
-                                                        <Ellipse Fill="{DynamicResource BrandOffColor}" Margin="0,0,6,0" />
-                                                        <TextBlock Text="Offline" />
-                                                    </StackPanel>
-                                                </Panel>
-                                                <TextBlock Text="{Binding GameMode, Converter={converters:ToStringConverter}}">
-                                                    <TextBlock.IsVisible>
-                                                        <Binding Path="!IsLoading" />
-                                                    </TextBlock.IsVisible>
-                                                </TextBlock>
-                                                <TextBlock TextWrapping="NoWrap" Background="Transparent"
-                                                           Classes.online="{Binding IsOnline}"
-                                                           ToolTip.Tip="{Binding PlayerNamesTooltip}">
-                                                    <TextBlock.IsVisible>
-                                                        <Binding Path="!IsLoading" />
-                                                    </TextBlock.IsVisible>
-                                                    <Run Text="{Binding PlayerCount}" />
-                                                    <Run Text=" / " />
-                                                    <Run Text="{Binding MaxPlayers}" />
-                                                    <Run Text=" playing" />
-                                                    <TextBlock.Styles>
-                                                        <Style Selector="TextBlock.online:pointerover">
-                                                            <Setter Property="TextDecorations" Value="Underline" />
-                                                        </Style>
-                                                    </TextBlock.Styles>
-                                                </TextBlock>
+                                                <viewControls:ServerStatusControl />
                                             </WrapPanel>
                                         </StackPanel>
                                         <StackPanel
