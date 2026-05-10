@@ -13,16 +13,7 @@ public sealed partial class PrecursorDisableGunTerminalArea_OnTriggerEnter_Patch
 
     public static bool Prefix(PrecursorDisableGunTerminalArea __instance, Collider other)
     {
-        GameObject entityRoot = UWE.Utils.GetEntityRoot(other.gameObject);
-        if (entityRoot == null)
-        {
-            entityRoot = other.gameObject;
-        }
-
-        bool isLocalPlayer = entityRoot.GetComponent<Player>() != null;
-        bool isRemotePlayer = entityRoot.GetComponent<RemotePlayerIdentifier>() != null;
-
-        if (!isLocalPlayer && !isRemotePlayer)
+        if (!PrecursorDisableGunTerminalArea_OnTriggerExit_Patch.IsPlayerCollider(other, out GameObject entityRoot))
         {
             return false;
         }

@@ -17,6 +17,26 @@ public sealed partial class PrecursorDisableGunTerminalArea_OnTriggerExit_Patch 
     /// </summary>
     private static readonly Dictionary<int, int> playerCountByTrigger = [];
 
+    /// <summary>
+    /// Checks if the collider belongs to a player (local or remote) and returns the entity root.
+    /// </summary>
+    /// <param name="other">The collider to check</param>
+    /// <param name="entityRoot">The entity root GameObject if it's a player, null otherwise</param>
+    /// <returns>True if the collider belongs to a player, false otherwise</returns>
+    public static bool IsPlayerCollider(Collider other, out GameObject entityRoot)
+    {
+        entityRoot = UWE.Utils.GetEntityRoot(other.gameObject);
+        if (entityRoot == null)
+        {
+            entityRoot = other.gameObject;
+        }
+
+        bool isLocalPlayer = entityRoot.GetComponent<Player>() != null;
+        bool isRemotePlayer = entityRoot.GetComponent<RemotePlayerIdentifier>() != null;
+
+        return isLocalPlayer || isRemotePlayer;
+    }
+
     public static void IncrementPlayerCount(PrecursorDisableGunTerminalArea trigger)
     {
         int id = trigger.GetInstanceID();
@@ -33,16 +53,7 @@ public sealed partial class PrecursorDisableGunTerminalArea_OnTriggerExit_Patch 
 
     public static bool Prefix(PrecursorDisableGunTerminalArea __instance, Collider other)
     {
-        GameObject entityRoot = UWE.Utils.GetEntityRoot(other.gameObject);
-        if (entityRoot == null)
-        {
-            entityRoot = other.gameObject;
-        }
-
-        bool isLocalPlayer = entityRoot.GetComponent<Player>() != null;
-        bool isRemotePlayer = entityRoot.GetComponent<RemotePlayerIdentifier>() != null;
-
-        if (!isLocalPlayer && !isRemotePlayer)
+        if (!IsPlayerCollider(other, out GameObject entityRoot))
         {
             return false;
         }
