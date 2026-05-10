@@ -109,19 +109,42 @@
                             </Style>
                         </StackPanel.Styles>
                         <Panel>
-                            <StackPanel IsVisible="{Binding ServerIsOnline}" Orientation="Horizontal">
-                                <Ellipse Fill="{DynamicResource BrandOnColor}" Margin="0,0,6,0" />
-                                <TextBlock IsVisible="{Binding ServerIsOnline}" Text="Online" />
+                            <StackPanel IsVisible="{Binding ServerIsLoading}" Orientation="Horizontal">
+                                <Ellipse Fill="{DynamicResource SystemAccentColor}" Margin="0,0,6,0" />
+                                <TextBlock Text="{Binding Server.LoadingStage, FallbackValue='Loading...'}" />
                             </StackPanel>
-                            <StackPanel IsVisible="{Binding !ServerIsOnline}" Orientation="Horizontal">
+                            <StackPanel Orientation="Horizontal">
+                                <StackPanel.IsVisible>
+                                    <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                        <Binding Path="ServerIsOnline" />
+                                        <Binding Path="!ServerIsLoading" />
+                                    </MultiBinding>
+                                </StackPanel.IsVisible>
+                                <Ellipse Fill="{DynamicResource BrandOnColor}" Margin="0,0,6,0" />
+                                <TextBlock Text="Online" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <StackPanel.IsVisible>
+                                    <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                        <Binding Path="!ServerIsOnline" />
+                                        <Binding Path="!ServerIsLoading" />
+                                    </MultiBinding>
+                                </StackPanel.IsVisible>
                                 <Ellipse Fill="{DynamicResource BrandOffColor}" Margin="0,0,6,0" />
-                                <TextBlock IsVisible="{Binding !ServerIsOnline}" Text="Offline" />
+                                <TextBlock Text="Offline" />
                             </StackPanel>
                         </Panel>
-                        <TextBlock Text="{Binding Server.GameMode, Converter={converters:ToStringConverter}, FallbackValue=Survival}" />
+                        <TextBlock Text="{Binding Server.GameMode, Converter={converters:ToStringConverter}, FallbackValue=Survival}">
+                            <TextBlock.IsVisible>
+                                <Binding Path="!ServerIsLoading" />
+                            </TextBlock.IsVisible>
+                        </TextBlock>
                         <TextBlock TextWrapping="NoWrap" Background="Transparent"
                                    Classes.online="{Binding Server.IsOnline, FallbackValue=False}"
                                    ToolTip.Tip="{Binding Server.PlayerNamesTooltip, FallbackValue=''}">
+                            <TextBlock.IsVisible>
+                                <Binding Path="!ServerIsLoading" />
+                            </TextBlock.IsVisible>>
                             <Run Text="{Binding Server.PlayerCount, FallbackValue=0}" />
                             <Run Text=" / " />
                             <Run Text="{Binding Server.MaxPlayers, FallbackValue=100}" />

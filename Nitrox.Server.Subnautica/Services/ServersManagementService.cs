@@ -27,6 +27,7 @@ internal sealed class ServersManagementService(PlayerManager playerManager, IPac
     private readonly PlayerManager playerManager = playerManager;
     private GrpcChannel? channel;
     private Task? pushLogsTask;
+    private Task? pushProgressTask;
 
     public override void Dispose() => channel?.Dispose();
 
@@ -53,6 +54,10 @@ internal sealed class ServersManagementService(PlayerManager playerManager, IPac
                 if (!pushLogsTask.IsBusyOrDone())
                 {
                     pushLogsTask = CreateLoopingTask(PushLogsAsync, api, stoppingToken);
+                }
+                if (!pushProgressTask.IsBusyOrDone())
+                {
+                    pushProgressTask = CreateLoopingTask(PushProgressAsync, api, stoppingToken);
                 }
             }
             catch (Exception ex)
@@ -145,6 +150,14 @@ internal sealed class ServersManagementService(PlayerManager playerManager, IPac
             }
 
             await api.AddOutputLine(category, isPlain ? null : time, level, message);
+        }
+    }
+
+    private async Task PushProgressAsync(IServersManagement api, CancellationToken cancellationToken)
+    {
+        await foreach (ServerLoadingProgressService.LoadingProgressUpdate progress in ServerLoadingProgressService.ProgressQueue.Reader.ReadAllAsync(cancellationToken))
+        {
+            await api.SetLoadingProgress(progress.Stage, progress.Progress);
         }
     }
 

@@ -43,6 +43,9 @@ internal sealed class StatusService(
 
     public async Task StartedAsync(CancellationToken cancellationToken)
     {
+        // Clear loading state - server is now fully ready
+        ServerLoadingProgressService.ReportProgress("", 1.0f);
+        
         appStartStopWatch.Stop();
         logger.ZLogInformation($"Server started in {double.Round(appStartStopWatch.Elapsed.TotalSeconds, 3):@Seconds} seconds");
         logger.ZLogInformation($"Server is listening on port {options.Value.ServerPort} UDP");

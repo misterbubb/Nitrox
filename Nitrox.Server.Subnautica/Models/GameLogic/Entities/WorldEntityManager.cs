@@ -10,6 +10,7 @@ using Nitrox.Model.Subnautica.DataStructures.GameLogic.Entities.Metadata;
 using Nitrox.Model.Subnautica.Helper;
 using Nitrox.Server.Subnautica.Models.GameLogic.Entities.Spawning;
 using Nitrox.Server.Subnautica.Models.Packets.Core;
+using Nitrox.Server.Subnautica.Services;
 
 namespace Nitrox.Server.Subnautica.Models.GameLogic.Entities;
 
@@ -242,7 +243,10 @@ internal sealed class WorldEntityManager
 
             if (batchesLoaded > 0)
             {
-                logger.ZLogInformation($"Loading : {(int)(100f * batchesLoaded / totalBatches)}%");
+                float progress = (float)batchesLoaded / totalBatches;
+                int percentage = (int)(100f * progress);
+                logger.ZLogInformation($"Loading : {percentage}%");
+                ServerLoadingProgressService.ReportProgress($"Loading entities: {percentage}%", progress);
             }
         }
     }

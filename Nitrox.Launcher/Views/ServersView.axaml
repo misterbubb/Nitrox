@@ -108,19 +108,42 @@
                                                 HorizontalAlignment="Left"
                                                 Orientation="Horizontal">
                                                 <Panel>
-                                                    <StackPanel IsVisible="{Binding IsOnline}" Orientation="Horizontal">
-                                                        <Ellipse Fill="{DynamicResource BrandOnColor}" Margin="0,0,6,0" />
-                                                        <TextBlock IsVisible="{Binding IsOnline}" Text="Online" />
+                                                    <StackPanel IsVisible="{Binding IsLoading}" Orientation="Horizontal">
+                                                        <Ellipse Fill="{DynamicResource SystemAccentColor}" Margin="0,0,6,0" />
+                                                        <TextBlock Text="{Binding LoadingStage, FallbackValue='Loading...'}" />
                                                     </StackPanel>
-                                                    <StackPanel IsVisible="{Binding !IsOnline}" Orientation="Horizontal">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <StackPanel.IsVisible>
+                                                            <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                                                <Binding Path="IsOnline" />
+                                                                <Binding Path="!IsLoading" />
+                                                            </MultiBinding>
+                                                        </StackPanel.IsVisible>
+                                                        <Ellipse Fill="{DynamicResource BrandOnColor}" Margin="0,0,6,0" />
+                                                        <TextBlock Text="Online" />
+                                                    </StackPanel>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <StackPanel.IsVisible>
+                                                            <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                                                <Binding Path="!IsOnline" />
+                                                                <Binding Path="!IsLoading" />
+                                                            </MultiBinding>
+                                                        </StackPanel.IsVisible>
                                                         <Ellipse Fill="{DynamicResource BrandOffColor}" Margin="0,0,6,0" />
-                                                        <TextBlock IsVisible="{Binding !IsOnline}" Text="Offline" />
+                                                        <TextBlock Text="Offline" />
                                                     </StackPanel>
                                                 </Panel>
-                                                <TextBlock Text="{Binding GameMode, Converter={converters:ToStringConverter}}" />
+                                                <TextBlock Text="{Binding GameMode, Converter={converters:ToStringConverter}}">
+                                                    <TextBlock.IsVisible>
+                                                        <Binding Path="!IsLoading" />
+                                                    </TextBlock.IsVisible>
+                                                </TextBlock>
                                                 <TextBlock TextWrapping="NoWrap" Background="Transparent"
                                                            Classes.online="{Binding IsOnline}"
                                                            ToolTip.Tip="{Binding PlayerNamesTooltip}">
+                                                    <TextBlock.IsVisible>
+                                                        <Binding Path="!IsLoading" />
+                                                    </TextBlock.IsVisible>
                                                     <Run Text="{Binding PlayerCount}" />
                                                     <Run Text=" / " />
                                                     <Run Text="{Binding MaxPlayers}" />

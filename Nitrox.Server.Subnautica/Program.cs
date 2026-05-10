@@ -66,6 +66,8 @@ internal sealed class Program
 
     private static async Task StartServerAsync(string[] args)
     {
+        ServerLoadingProgressService.ReportProgress("Initializing server", 0.0f);
+        
         HostApplicationBuilder builder = Host.CreateEmptyApplicationBuilder(new HostApplicationBuilderSettings
         {
             DisableDefaults = true,

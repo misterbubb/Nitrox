@@ -97,10 +97,13 @@ internal class WorldService : IHostedService
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
+        ServerLoadingProgressService.ReportProgress("Loading world data", 0.1f);
+        
         if (!await LoadWorldFromSavePathAsync(startOptions.Value.GetServerSavePath()))
         {
             await CreateAndLoadWorldAsync();
         }
+        
         await CreateFullEntityCacheIfRequested();
         return;
 
@@ -108,6 +111,7 @@ internal class WorldService : IHostedService
         {
             if (!options.Value.CreateFullEntityCache)
             {
+                // No entity cache - server is ready after world data loads
                 return;
             }
 
