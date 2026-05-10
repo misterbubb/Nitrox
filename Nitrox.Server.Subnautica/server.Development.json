@@ -1,7 +1,0 @@
-{
-  "GameServer": {
-    "PortForward": false,
-    "LanDiscovery": false,
-    "SaveInterval": 0
-  }
-}
