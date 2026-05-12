@@ -117,6 +117,9 @@ public class Items
 
         WorldEntity droppedItem;
         List<Entity> childrenEntities = GetPrefabChildren(gameObject, id, entityMetadataManager).ToList();
+        
+        // Populate installed batteries for dropped items
+        BatteryChildEntityHelper.TryPopulateInstalledBattery(gameObject, childrenEntities, id);
 
         // If the item is dropped in a WaterPark we need to handle it differently
         NitroxId parentId = null;
@@ -215,6 +218,12 @@ public class Items
 
             foreach (PrefabIdentifier prefab in prefabGroup)
             {
+                // Skip batteries that are installed in an EnergyMixin, as they will be handled by InstalledBatteryEntity
+                if (prefab.gameObject.GetComponent<Battery>() && IsInstalledBattery(prefab.gameObject))
+                {
+                    continue;
+                }
+
                 NitroxId id = NitroxEntity.GetIdOrGenerateNew(prefab.gameObject); // We do this here bc a MetadataExtractor could be requiring the id to increment or so
                 Optional<EntityMetadata> metadata = entityMetadataManager.Extract(prefab.gameObject);
 
@@ -229,6 +238,30 @@ public class Items
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Checks if a battery GameObject is installed in an EnergyMixin's battery slot
+    /// </summary>
+    private static bool IsInstalledBattery(GameObject batteryObject)
+    {
+        // Check if this battery's parent or grandparent has an EnergyMixin component
+        // Battery hierarchy is usually: Tool (EnergyMixin) -> BatterySlot -> Battery
+        Transform parent = batteryObject.transform.parent;
+        if (parent == null)
+        {
+            return false;
+        }
+        
+        // Check parent first
+        if (parent.GetComponent<EnergyMixin>() != null)
+        {
+            return true;
+        }
+        
+        // Check grandparent (parent.parent)
+        Transform grandparent = parent.parent;
+        return grandparent != null && grandparent.GetComponent<EnergyMixin>() != null;
     }
 
     /// <summary>

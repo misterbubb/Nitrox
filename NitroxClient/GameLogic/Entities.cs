@@ -54,7 +54,7 @@ namespace NitroxClient.GameLogic
             entitySpawnersByType[typeof(PrefabChildEntity)] = new PrefabChildEntitySpawner();
             entitySpawnersByType[typeof(PathBasedChildEntity)] = new PathBasedChildEntitySpawner();
             entitySpawnersByType[typeof(InstalledModuleEntity)] = new InstalledModuleEntitySpawner();
-            entitySpawnersByType[typeof(InstalledBatteryEntity)] = new InstalledBatteryEntitySpawner();
+            entitySpawnersByType[typeof(InstalledBatteryEntity)] = new InstalledBatteryEntitySpawner(entityMetadataManager);
             entitySpawnersByType[typeof(InventoryEntity)] = new InventoryEntitySpawner();
             entitySpawnersByType[typeof(InventoryItemEntity)] = new InventoryItemEntitySpawner(entityMetadataManager);
             entitySpawnersByType[typeof(WorldEntity)] = new WorldEntitySpawner(entityMetadataManager, this, simulationOwnership);

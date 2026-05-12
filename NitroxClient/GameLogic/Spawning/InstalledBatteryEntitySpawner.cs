@@ -5,6 +5,7 @@ using Nitrox.Model.DataStructures;
 using NitroxClient.Communication;
 using NitroxClient.GameLogic.Spawning.Abstract;
 using NitroxClient.GameLogic.Spawning.WorldEntities;
+using NitroxClient.GameLogic.Spawning.Metadata;
 using NitroxClient.MonoBehaviours;
 using Nitrox.Model.Subnautica.DataStructures.GameLogic.Entities;
 using Nitrox.Model.Subnautica.Packets;
@@ -12,8 +13,9 @@ using UnityEngine;
 
 namespace NitroxClient.GameLogic.Spawning;
 
-public class InstalledBatteryEntitySpawner : SyncEntitySpawner<InstalledBatteryEntity>
+public class InstalledBatteryEntitySpawner(EntityMetadataManager entityMetadataManager) : SyncEntitySpawner<InstalledBatteryEntity>
 {
+    private readonly EntityMetadataManager entityMetadataManager = entityMetadataManager;
     protected override IEnumerator SpawnAsync(InstalledBatteryEntity entity, TaskResult<Optional<GameObject>> result)
     {
         if (!CanSpawn(entity, out EnergyMixin? energyMixin, out string errorLog))
@@ -27,7 +29,7 @@ public class InstalledBatteryEntitySpawner : SyncEntitySpawner<InstalledBatteryE
         yield return DefaultWorldEntitySpawner.RequestPrefab(entity.TechType.ToUnity(), prefabResult);
         GameObject gameObject = GameObjectExtensions.InstantiateWithId(prefabResult.Get(), entity.Id);
 
-        SetupObject(gameObject, energyMixin);
+        SetupObject(gameObject, energyMixin, entity);
 
         result.Set(gameObject);
     }
@@ -46,7 +48,7 @@ public class InstalledBatteryEntitySpawner : SyncEntitySpawner<InstalledBatteryE
 
         GameObject gameObject = GameObjectExtensions.SpawnFromPrefab(prefab, entity.Id);
 
-        SetupObject(gameObject, energyMixin);
+        SetupObject(gameObject, energyMixin, entity);
 
         result.Set(gameObject);
         return true;
@@ -75,8 +77,15 @@ public class InstalledBatteryEntitySpawner : SyncEntitySpawner<InstalledBatteryE
         return true;
     }
 
-    private void SetupObject(GameObject gameObject, EnergyMixin energyMixin)
+    private void SetupObject(GameObject gameObject, EnergyMixin energyMixin, InstalledBatteryEntity entity)
     {
+        Log.Debug($"[Battery Debug] InstalledBatteryEntitySpawner.SetupObject for {gameObject.name}");
+        Log.Debug($"[Battery Debug]   - Entity has metadata: {entity.Metadata != null}");
+        if (entity.Metadata != null)
+        {
+            Log.Debug($"[Battery Debug]   - Metadata: {entity.Metadata}");
+        }
+        
         energyMixin.Initialize();
         energyMixin.RestoreBattery();
 
@@ -84,6 +93,17 @@ public class InstalledBatteryEntitySpawner : SyncEntitySpawner<InstalledBatteryE
         using (PacketSuppressor<EntitySpawnedByClient>.Suppress())
         {
             energyMixin.batterySlot.AddItem(new InventoryItem(gameObject.GetComponent<Pickupable>()));
+        }
+
+        // Apply battery metadata (charge) if present
+        if (entity.Metadata != null)
+        {
+            entityMetadataManager.ApplyMetadata(gameObject, entity.Metadata);
+            Log.Debug($"[Battery Debug] Applied metadata to spawned battery");
+        }
+        else
+        {
+            Log.Debug($"[Battery Debug] No metadata to apply - battery will have default charge");
         }
     }
 }
