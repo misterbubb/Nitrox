@@ -61,7 +61,7 @@ internal sealed class ServersManagementService(PlayerManager playerManager, IPac
                 if (api != null)
                 {
                     await PushPollDataAsync(api);
-                    if (pushLogsTask == null || pushLogsTask.IsCompleted)
+                    if (!pushLogsTask.IsBusyOrSuccessful())
                     {
                         pushLogsTask = CreateLoopingTask(PushLogsAsync, api, stoppingToken);
                     }
@@ -71,7 +71,7 @@ internal sealed class ServersManagementService(PlayerManager playerManager, IPac
             {
                 if (!ShouldIgnoreException(ex))
                 {
-                    logger.ZLogError(ex, $"Error in ServersManagementService");
+                    logger.ZLogTrace($"{ex.Message}");
                 }
             }
             await WaitNextAsync();
