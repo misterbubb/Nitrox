@@ -7,11 +7,12 @@ using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.Hosting;
 using Nitrox.Model.Constants;
+using Nitrox.Model.Logger;
 
 namespace Nitrox.Launcher.Models.Services;
 
 /// <summary>
-///     Writes the gRPC port in a file that Nitrox servers can access. This service is necessary because the listening port is dynamic to prevent "port in use" issues.
+///     Writes the gRPC connection info in a file that Nitrox servers can access. On Windows, writes the named pipe name. On Linux, writes the port number.
 /// </summary>
 internal class WriteGrpcPortFileService(IServer server) : IHostedLifecycleService
 {
@@ -26,19 +27,32 @@ internal class WriteGrpcPortFileService(IServer server) : IHostedLifecycleServic
 
     public async Task StartedAsync(CancellationToken cancellationToken)
     {
-        IServerAddressesFeature? addressFeature = server.Features.Get<IServerAddressesFeature>();
-        // We expect only one port to be known by .NET server (kestrel). If there are more, we need to refactor this code to ONLY write the gRPC port.
-        int grpcPort = addressFeature.Addresses.Select(a => new Uri(a).Port).First(); // Should throw if more than one port.
+        string connectionInfo;
+        
+        if (OperatingSystem.IsWindows())
+        {
+            // On Windows, write the named pipe name
+            connectionInfo = LauncherConstants.GRPC_NAMED_PIPE_NAME;
+        }
+        else
+        {
+            // On Linux, write the port number
+            IServerAddressesFeature? addressFeature = server.Features.Get<IServerAddressesFeature>();
+            int grpcPort = addressFeature.Addresses.Select(a => new Uri(a).Port).First();
+            connectionInfo = grpcPort.ToString();
+        }
+        
         int attempts = 10;
         while (attempts-- > 0)
         {
             try
             {
-                await File.WriteAllTextAsync(filePath, grpcPort.ToString(), cancellationToken);
+                await File.WriteAllTextAsync(filePath, connectionInfo, cancellationToken);
                 break;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Log.Warn($"Failed to write gRPC connection info (attempt {10 - attempts}/10): {ex.Message}");
                 await Task.Delay(500, cancellationToken);
             }
         }

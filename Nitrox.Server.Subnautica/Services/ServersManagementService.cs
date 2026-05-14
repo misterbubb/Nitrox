@@ -1,6 +1,8 @@
 using System.Buffers;
 using System.IO;
+using System.IO.Pipes;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Channels;
 using Grpc.Core;
 using Grpc.Net.Client;
@@ -21,11 +23,15 @@ namespace Nitrox.Server.Subnautica.Services;
 internal sealed class ServersManagementService(PlayerManager playerManager, IPacketSender packetSender, CommandService commandProcessor, IOptions<ServerStartOptions> options, ILogger<ServersManagementService> logger) : BackgroundService
 {
     public static readonly Channel<LogEntry> LogQueue = Channel.CreateBounded<LogEntry>(new BoundedChannelOptions(1000) { FullMode = BoundedChannelFullMode.DropOldest });
+    
     private readonly CommandService commandProcessor = commandProcessor;
     private readonly ILogger<ServersManagementService> logger = logger;
     private readonly IOptions<ServerStartOptions> options = options;
     private readonly PlayerManager playerManager = playerManager;
+    
     private GrpcChannel? channel;
+    private string? currentPipeName;
+    private int? currentPort;
     private Task? pushLogsTask;
 
     public override void Dispose() => channel?.Dispose();
@@ -40,26 +46,44 @@ internal sealed class ServersManagementService(PlayerManager playerManager, IPac
         {
             try
             {
-                int? launcherGrpcPortAsync = await GetLauncherGrpcPortAsync();
-                if (launcherGrpcPortAsync == null)
+                if (OperatingSystem.IsWindows())
                 {
-                    await WaitNextAsync();
-                    continue;
+                    // On Windows, connection info is the named pipe name
+                    string pipeName = await GetLauncherConnectionInfoAsync();
+                    if (string.IsNullOrEmpty(pipeName))
+                    {
+                        await WaitNextAsync();
+                        continue;
+                    }
+                    await RefreshConnectionAsync(null, pipeName);
                 }
-                await RefreshConnectionAsync(launcherGrpcPortAsync);
+                else
+                {
+                    // On Linux, connection info is the port number
+                    int? launcherGrpcPort = await GetLauncherGrpcPortAsync();
+                    if (launcherGrpcPort == null)
+                    {
+                        await WaitNextAsync();
+                        continue;
+                    }
+                    await RefreshConnectionAsync(launcherGrpcPort, null);
+                }
 
                 // Push data
-                await PushPollDataAsync(api);
-                if (!pushLogsTask.IsBusyOrDone())
+                if (api != null)
                 {
-                    pushLogsTask = CreateLoopingTask(PushLogsAsync, api, stoppingToken);
+                    await PushPollDataAsync(api);
+                    if (pushLogsTask == null || pushLogsTask.IsCompleted)
+                    {
+                        pushLogsTask = CreateLoopingTask(PushLogsAsync, api, stoppingToken);
+                    }
                 }
             }
             catch (Exception ex)
             {
                 if (!ShouldIgnoreException(ex))
                 {
-                    logger.ZLogTrace($"{ex.Message}");
+                    logger.ZLogError(ex, $"Error in ServersManagementService");
                 }
             }
             await WaitNextAsync();
@@ -67,20 +91,60 @@ internal sealed class ServersManagementService(PlayerManager playerManager, IPac
 
         ValueTask<bool> WaitNextAsync() => refreshTimer.WaitForNextTickAsync(stoppingToken);
 
-        async Task RefreshConnectionAsync(int? grpcPort)
+        async Task RefreshConnectionAsync(int? grpcPort, string pipeName)
         {
-            if (channel?.Target.EndsWith(grpcPort.ToString(), StringComparison.Ordinal) == false)
+            if (OperatingSystem.IsWindows())
             {
-                channel?.Dispose();
-                channel = null;
-                if (api != null)
+                // On Windows, use named pipes for faster IPC
+                if (currentPipeName != pipeName)
                 {
-                    await api.DisposeAsync();
+                    channel?.Dispose();
+                    channel = null;
+                    if (api != null)
+                    {
+                        await api.DisposeAsync();
+                    }
+                    api = null;
+                    currentPipeName = pipeName;
                 }
-                api = null;
-            }
 
-            channel ??= GrpcChannel.ForAddress($"http://localhost:{grpcPort}");
+                if (channel == null)
+                {
+                    channel = GrpcChannel.ForAddress("http://localhost", new GrpcChannelOptions
+                    {
+                        HttpHandler = new SocketsHttpHandler
+                        {
+                            ConnectCallback = async (context, cancellationToken) =>
+                            {
+                                var clientStream = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
+                                await clientStream.ConnectAsync(cancellationToken);
+                                return clientStream;
+                            }
+                        }
+                    });
+                }
+            }
+            else
+            {
+                // On Linux, use sockets
+                if (currentPort != grpcPort)
+                {
+                    channel?.Dispose();
+                    channel = null;
+                    if (api != null)
+                    {
+                        await api.DisposeAsync();
+                    }
+                    api = null;
+                    currentPort = grpcPort;
+                }
+
+                if (channel == null)
+                {
+                    channel = GrpcChannel.ForAddress($"http://localhost:{grpcPort}");
+                }
+            }
+            
             if (api == null)
             {
                 StreamingHubClientOptions grpcOptions = StreamingHubClientOptions.CreateWithDefault()
@@ -173,6 +237,20 @@ internal sealed class ServersManagementService(PlayerManager playerManager, IPac
         catch (Exception)
         {
             logger.ZLogWarningOnce($"Unable to get gRPC listen port from Nitrox Launcher, it might not be running. Retrying...");
+        }
+        return null;
+    }
+
+    private async Task<string> GetLauncherConnectionInfoAsync()
+    {
+        try
+        {
+            string info = await File.ReadAllTextAsync(Path.Combine(Path.GetTempPath(), LauncherConstants.GRPC_LISTEN_PORT_TEMP_FILE_NAME));
+            return info.Trim();
+        }
+        catch (Exception)
+        {
+            logger.ZLogWarningOnce($"Unable to get gRPC connection info from Nitrox Launcher, it might not be running. Retrying...");
         }
         return null;
     }
