@@ -28,7 +28,6 @@ internal class WriteGrpcPortFileService(IServer server) : IHostedLifecycleServic
     public async Task StartedAsync(CancellationToken cancellationToken)
     {
         string connectionInfo;
-        
         if (OperatingSystem.IsWindows())
         {
             // On Windows, write the named pipe name
@@ -36,13 +35,15 @@ internal class WriteGrpcPortFileService(IServer server) : IHostedLifecycleServic
         }
         else
         {
-            // On Linux, write the port number
+            // On Non-Windows, write the port number.
+            // We expect only one port to be known by .NET server (kestrel). If there are more, we need to refactor this code to ONLY write the gRPC port.
             IServerAddressesFeature? addressFeature = server.Features.Get<IServerAddressesFeature>();
             int grpcPort = addressFeature.Addresses.Select(a => new Uri(a).Port).First();
             connectionInfo = grpcPort.ToString();
         }
-        
-        int attempts = 10;
+
+        const int INITIAL_ATTEMPTS = 10;
+        int attempts = INITIAL_ATTEMPTS;
         while (attempts-- > 0)
         {
             try
@@ -52,7 +53,7 @@ internal class WriteGrpcPortFileService(IServer server) : IHostedLifecycleServic
             }
             catch (Exception ex)
             {
-                Log.Warn($"Failed to write gRPC connection info (attempt {10 - attempts}/10): {ex.Message}");
+                Log.Warn($"Failed to write gRPC connection info (attempt {INITIAL_ATTEMPTS - attempts}/{INITIAL_ATTEMPTS}): {ex.Message}");
                 await Task.Delay(500, cancellationToken);
             }
         }
