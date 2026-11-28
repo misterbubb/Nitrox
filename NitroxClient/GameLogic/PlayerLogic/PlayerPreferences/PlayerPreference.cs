@@ -61,6 +61,11 @@ namespace NitroxClient.GameLogic.PlayerLogic.PlayerPreferences
             };
         }
 
+        public Color PreferredColor()
+        {
+            return new Color(RedAdditive, GreenAdditive, BlueAdditive);
+        }
+
         public override bool Equals(object obj)
         {
             if (ReferenceEquals(null, obj))
@@ -91,14 +96,6 @@ namespace NitroxClient.GameLogic.PlayerLogic.PlayerPreferences
                 hashCode = (hashCode * 397) ^ BlueAdditive.GetHashCode();
                 return hashCode;
             }
-        }
-    }
-
-    public static class PlayerPreferenceExtensions
-    {
-        public static Color PreferredColor(this PlayerPreference playerPreference)
-        {
-            return new Color(playerPreference.RedAdditive, playerPreference.GreenAdditive, playerPreference.BlueAdditive);
         }
     }
 }

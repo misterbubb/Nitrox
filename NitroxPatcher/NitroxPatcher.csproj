@@ -9,6 +9,7 @@
         <PackageReference Include="HarmonyX" />
         <PackageReference Include="System.Text.Json" />
         <PackageReference Include="System.ValueTuple" GeneratePathProperty="true" />
+        <!-- Copy System.Text.Json's System.ValueTuple dependency beside the game-loaded assemblies for Subnautica's Mono runtime. -->
         <Content Include="$(PkgSystem_ValueTuple)\lib\net47\System.ValueTuple.dll"
                  Link="System.ValueTuple.dll"
                  CopyToOutputDirectory="PreserveNewest"
