@@ -32,12 +32,18 @@ public class EscapePodEntitySpawner : SyncEntitySpawner<EscapePodEntity>
 
     protected override IEnumerator SpawnAsync(EscapePodEntity entity, TaskResult<Optional<GameObject>> result)
     {
+        // The initial sync can arrive before the EscapePod scene has initialized EscapePod.main.
+        yield return new WaitUntil(() => EscapePod.main != null);
         SpawnSync(entity, result);
-        return null;
     }
 
     protected override bool SpawnSync(EscapePodEntity entity, TaskResult<Optional<GameObject>> result)
     {
+        if (EscapePod.main == null)
+        {
+            return false;
+        }
+
         bool previousSuppressAwakeMethod = SuppressEscapePodAwakeMethod;
         SuppressEscapePodAwakeMethod = true;
         try
